@@ -1,0 +1,29 @@
+name: Job Search Cron
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'  # Every 6 hours: 00:00, 06:00, 12:00, 18:00 UTC
+  workflow_dispatch:         # Allow manual trigger from GitHub UI
+
+jobs:
+  run-job-search:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Trigger job search
+        run: |
+          response=$(curl -s -w "\n%{http_code}" \
+            "${{ secrets.VERCEL_APP_URL }}/api/cron" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}")
+
+          http_status=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | head -n-1)
+
+          echo "HTTP Status: $http_status"
+          echo "Response: $body"
+
+          if [ "$http_status" != "200" ]; then
+            echo "::error::Cron endpoint returned status $http_status"
+            exit 1
+          fi
