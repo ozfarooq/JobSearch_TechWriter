@@ -4,7 +4,7 @@ export interface Job {
   url: string;
   description: string;
   postedAt: string; // ISO string
-  platform: 'Upwork' | 'LinkedIn';
+  platform: string; // e.g. 'Upwork', 'LinkedIn', 'Indeed', 'Glassdoor'
   budget?: string;
   isRemote: boolean;
 }

@@ -150,7 +150,7 @@ export async function saveJob(job: ScoredJob): Promise<void> {
 
         // Multi-select property — skill tags (must be { name: string } objects)
         Tags: {
-          multi_select: job.tags.map(tag => ({ name: tag.slice(0, 100) })),
+          multi_select: job.tags.map(tag => ({ name: tag.replace(/,/g, '').slice(0, 100) })),
         },
       },
     });

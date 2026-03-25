@@ -11,8 +11,10 @@ const JOB_QUERIES = [
   'LLM Documentation technical writer',
 ];
 
-// Jobs posted within the last 7 hours (1hr buffer over 6hr cron)
-const MAX_AGE_MS = 7 * 60 * 60 * 1000;
+// Jobs posted within the last 6 hours (matches cron interval)
+// Use 48h during local testing to verify the pipeline; production uses 6h via cron
+const IS_TEST = process.env.NODE_ENV === 'development';
+const MAX_AGE_MS = IS_TEST ? 48 * 60 * 60 * 1000 : 6 * 60 * 60 * 1000;
 
 interface JSearchJob {
   job_id: string;
@@ -97,13 +99,10 @@ async function fetchJobsForQuery(query: string, now: number): Promise<Job[]> {
   const jobs: Job[] = [];
 
   for (const item of data.data) {
-    // Filter to LinkedIn jobs only
-    if (!item.job_publisher?.toLowerCase().includes('linkedin')) continue;
-
     const jobUrl = item.job_apply_link;
     if (!jobUrl) continue;
 
-    // Parse post date and filter to last 7 hours
+    // Parse post date and filter to last 6 hours
     const postedDate = item.job_posted_at_datetime_utc
       ? new Date(item.job_posted_at_datetime_utc)
       : null;
