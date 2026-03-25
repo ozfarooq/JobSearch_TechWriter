@@ -16,6 +16,8 @@ const JOB_QUERIES = [
 const IS_TEST = process.env.NODE_ENV === 'development';
 const MAX_AGE_MS = IS_TEST ? 48 * 60 * 60 * 1000 : 6 * 60 * 60 * 1000;
 
+const ALLOWED_COUNTRIES = new Set(['US', 'GB', 'AU']);
+
 interface JSearchJob {
   job_id: string;
   job_title: string;
@@ -25,6 +27,7 @@ interface JSearchJob {
   job_posted_at_datetime_utc: string;
   job_publisher: string;
   job_is_remote: boolean;
+  job_country?: string;
   job_min_salary?: number;
   job_max_salary?: number;
   job_salary_currency?: string;
@@ -109,6 +112,10 @@ async function fetchJobsForQuery(query: string, now: number): Promise<Job[]> {
 
     if (!postedDate || isNaN(postedDate.getTime())) continue;
     if (postedDate.getTime() < cutoff) continue;
+
+    // Only include jobs from US, UK (GB), or Australian companies
+    const country = (item.job_country ?? '').toUpperCase();
+    if (country && !ALLOWED_COUNTRIES.has(country)) continue;
 
     const job: Job = {
       title: item.job_title ?? query,
